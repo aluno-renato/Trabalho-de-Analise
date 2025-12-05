@@ -3,24 +3,14 @@ import random
 import time
 from typing import List, Tuple
 
-# Seed fixa para reprodutibilidade dos experimentos
 RANDOM_SEED = 42
 random.seed(RANDOM_SEED)
 
-# ===============================================================
-#  ALGORITMO 1: GULOSO POR RAZÃO VALOR/PESO (GREEDY)
-# ===============================================================
-# COMPLEXIDADE: O(n log n)
-#   - Ordenação dos itens: O(n log n)
-#   - Iteração pelos itens: O(n)
-#   - Complexidade dominante: O(n log n)
-# ===============================================================
 
 def knapsack_greedy(weights, values, capacity):
     n = len(weights)
     items = list(range(n))
 
-    # ordena itens por razão valor/peso
     items.sort(key=lambda i: values[i] / weights[i], reverse=True)
 
     total_value = 0
@@ -35,26 +25,10 @@ def knapsack_greedy(weights, values, capacity):
 
     return total_value, total_weight, chosen
 
-
-
-# ===============================================================
-#  ALGORITMO 2: PROGRAMAÇÃO DINÂMICA PARA KNAPSACK 0/1
-# ===============================================================
-# COMPLEXIDADE: O(n * W)
-#   - n = número de itens
-#   - W = capacidade da mochila
-#   - Dois loops aninhados: n iterações × W iterações
-#   - Espaço: O(n * W) para a tabela DP
-# 
-# NOTA: Este é um algoritmo EXATO (não aproximativo)
-#       Serve como BASELINE para avaliar a qualidade do Greedy
-# ===============================================================
-
 def knapsack_dp(weights, values, capacity):
     n = len(weights)
     dp = [[0]*(capacity+1) for _ in range(n+1)]
 
-    # Construção da tabela DP
     for i in range(1, n+1):
         for w in range(1, capacity+1):
             if weights[i-1] <= w:
@@ -63,7 +37,6 @@ def knapsack_dp(weights, values, capacity):
             else:
                 dp[i][w] = dp[i-1][w]
 
-    # Recuperação dos itens usados
     chosen = []
     w = capacity
     total_value = dp[n][capacity]
@@ -77,62 +50,28 @@ def knapsack_dp(weights, values, capacity):
 
     return total_value, total_weight, chosen
 
-
-
-# ===============================================================
-#  GERAÇÃO DE INSTÂNCIAS DE TESTE
-# ===============================================================
-# Gera instâncias aleatórias com seed fixa para reprodutibilidade
-# A capacidade é definida como 30% do peso total para criar
-# instâncias desafiadoras onde escolhas gulosas podem falhar
-# ===============================================================
-
 def gerar_instancia(n_itens=100, seed=None):
-    """
-    Gera uma instância aleatória do problema da mochila.
-    
-    Args:
-        n_itens: Número de itens a gerar
-        seed: Seed para geração aleatória (None usa a seed global)
-    
-    Returns:
-        tuple: (weights, values, capacity)
-    """
     if seed is not None:
         random.seed(seed)
     
     weights = [random.randint(1, 50) for _ in range(n_itens)]
     values  = [random.randint(10, 300) for _ in range(n_itens)]
-    capacity = int(sum(weights) * 0.3)  # 30% do peso total → problema difícil
+    capacity = int(sum(weights) * 0.3)
 
     return weights, values, capacity
 
 
 def executar_experimento(n_itens: int, seed: int = RANDOM_SEED) -> dict:
-    """
-    Executa um experimento completo com ambos os algoritmos.
-    
-    Args:
-        n_itens: Número de itens na instância
-        seed: Seed para geração da instância
-    
-    Returns:
-        dict: Resultados do experimento
-    """
     weights, values, capacity = gerar_instancia(n_itens, seed)
     
-    # Execução Greedy
     t0 = time.perf_counter()
     greedy_value, greedy_weight, greedy_items = knapsack_greedy(weights, values, capacity)
     greedy_time = time.perf_counter() - t0
     
-    # Execução DP
     t0 = time.perf_counter()
     dp_value, dp_weight, dp_items = knapsack_dp(weights, values, capacity)
     dp_time = time.perf_counter() - t0
     
-    # Cálculo do Fator de Aproximação
-    # ρ = valor_obtido / valor_ótimo
     fator_aproximacao = greedy_value / dp_value if dp_value > 0 else 0
     gap_percentual = ((dp_value - greedy_value) / dp_value) * 100 if dp_value > 0 else 0
     
@@ -153,13 +92,6 @@ def executar_experimento(n_itens: int, seed: int = RANDOM_SEED) -> dict:
 
 
 def exportar_resultados(resultados: List[dict], filename: str = 'resultados.csv'):
-    """
-    Exporta resultados dos experimentos para arquivo CSV.
-    
-    Args:
-        resultados: Lista de dicionários com resultados
-        filename: Nome do arquivo de saída
-    """
     if not resultados:
         return
     
@@ -170,12 +102,6 @@ def exportar_resultados(resultados: List[dict], filename: str = 'resultados.csv'
     
     print(f"\n✓ Resultados exportados para '{filename}'")
 
-
-
-# ===============================================================
-#  EXPERIMENTOS COMPARATIVOS COM MÚLTIPLOS TAMANHOS
-# ===============================================================
-
 if __name__ == "__main__":
     print("="*70)
     print(" PROBLEMA DA MOCHILA 0/1: GREEDY vs PROGRAMAÇÃO DINÂMICA")
@@ -184,7 +110,6 @@ if __name__ == "__main__":
     print("="*70)
     print()
     
-    # Tamanhos de instâncias a testar (conforme exigido na rubrica)
     tamanhos = [50, 100, 200, 500]
     resultados = []
     
@@ -209,13 +134,11 @@ if __name__ == "__main__":
         print(f"   • Gap de Otimalidade: {resultado['gap_percentual']:.2f}%")
         print(f"   • Greedy atingiu {100 - resultado['gap_percentual']:.2f}% do valor ótimo")
         
-        # Análise de speedup
         if resultado['dp_tempo'] > 0:
             speedup = resultado['dp_tempo'] / resultado['greedy_tempo']
             print(f"\n⚡ ANÁLISE DE TEMPO:")
             print(f"   • Speedup do Greedy: {speedup:.2f}x mais rápido que DP")
     
-    # Resumo final
     print(f"\n\n{'='*70}")
     print(" RESUMO COMPARATIVO - TODOS OS EXPERIMENTOS")
     print(f"{'='*70}")
@@ -237,7 +160,6 @@ if __name__ == "__main__":
     print("• Gap: Diferença percentual entre Greedy e solução ótima")
     print("="*70)
     
-    # Exportar resultados para análise posterior
     exportar_resultados(resultados, 'resultados_experimentos.csv')
     
     print("\n✓ Experimentos concluídos com sucesso!")

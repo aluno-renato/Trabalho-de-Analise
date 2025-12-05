@@ -8,7 +8,6 @@ import csv
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Configuração de estilo
 plt.style.use('seaborn-v0_8-darkgrid')
 plt.rcParams['figure.figsize'] = (12, 8)
 plt.rcParams['font.size'] = 10
@@ -33,18 +32,12 @@ def carregar_dados(filename='resultados_experimentos.csv'):
             dados['fator_aproximacao'].append(float(row['fator_aproximacao']))
             dados['gap_percentual'].append(float(row['gap_percentual']))
             
-            # Calcular speedup
             speedup = float(row['dp_tempo']) / float(row['greedy_tempo'])
             dados['speedup'].append(speedup)
     
     return dados
 
-def criar_graficos(dados):
-    """Cria todos os gráficos comparativos"""
-    
-    # ============================================================
-    # GRÁFICO 1: Comparação de Tempo de Execução (Escala Log)
-    # ============================================================
+def criar_graficos(dados):    
     fig, ax = plt.subplots(figsize=(10, 6))
     
     ax.plot(dados['n_itens'], dados['greedy_tempo'], 
@@ -67,10 +60,7 @@ def criar_graficos(dados):
     plt.savefig('grafico_tempo_execucao.png', dpi=300, bbox_inches='tight')
     print("✓ Gráfico 1 salvo: grafico_tempo_execucao.png")
     plt.close()
-    
-    # ============================================================
-    # GRÁFICO 2: Speedup do Greedy em relação ao DP
-    # ============================================================
+
     fig, ax = plt.subplots(figsize=(10, 6))
     
     colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(dados['n_itens'])))
@@ -85,7 +75,6 @@ def criar_graficos(dados):
     ax.set_xticklabels(dados['n_itens'])
     ax.grid(True, axis='y', alpha=0.3)
     
-    # Adicionar valores sobre as barras
     for i, (bar, speedup) in enumerate(zip(bars, dados['speedup'])):
         height = bar.get_height()
         ax.text(bar.get_x() + bar.get_width()/2., height,
@@ -97,9 +86,6 @@ def criar_graficos(dados):
     print("✓ Gráfico 2 salvo: grafico_speedup.png")
     plt.close()
     
-    # ============================================================
-    # GRÁFICO 3: Fator de Aproximação (ρ)
-    # ============================================================
     fig, ax = plt.subplots(figsize=(10, 6))
     
     ax.plot(dados['n_itens'], dados['fator_aproximacao'], 
@@ -107,7 +93,6 @@ def criar_graficos(dados):
             color='#3498db', markerfacecolor='#f39c12', 
             markeredgewidth=2, markeredgecolor='#3498db')
     
-    # Linha de referência em ρ = 1.0 (ótimo)
     ax.axhline(y=1.0, color='red', linestyle='--', linewidth=2, 
                label='ρ = 1.0 (Ótimo)', alpha=0.7)
     
@@ -119,7 +104,6 @@ def criar_graficos(dados):
     ax.legend(fontsize=11)
     ax.grid(True, alpha=0.3)
     
-    # Adicionar anotações com os valores
     for x, y in zip(dados['n_itens'], dados['fator_aproximacao']):
         ax.annotate(f'{y:.4f}', 
                    xy=(x, y), 
@@ -134,9 +118,6 @@ def criar_graficos(dados):
     print("✓ Gráfico 3 salvo: grafico_fator_aproximacao.png")
     plt.close()
     
-    # ============================================================
-    # GRÁFICO 4: Gap de Otimalidade (%)
-    # ============================================================
     fig, ax = plt.subplots(figsize=(10, 6))
     
     colors_gap = ['#27ae60' if gap == 0 else '#e67e22' for gap in dados['gap_percentual']]
@@ -151,7 +132,6 @@ def criar_graficos(dados):
     ax.set_xticklabels(dados['n_itens'])
     ax.grid(True, axis='y', alpha=0.3)
     
-    # Adicionar valores sobre as barras
     for i, (bar, gap) in enumerate(zip(bars, dados['gap_percentual'])):
         height = bar.get_height()
         ax.text(bar.get_x() + bar.get_width()/2., height + 0.02,
@@ -162,13 +142,9 @@ def criar_graficos(dados):
     plt.savefig('grafico_gap_otimalidade.png', dpi=300, bbox_inches='tight')
     print("✓ Gráfico 4 salvo: grafico_gap_otimalidade.png")
     plt.close()
-    
-    # ============================================================
-    # GRÁFICO 5: Dashboard Completo (4 subplots)
-    # ============================================================
+
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
     
-    # Subplot 1: Tempo de Execução
     ax1.plot(dados['n_itens'], dados['greedy_tempo'], 
             marker='o', linewidth=2, markersize=8, 
             label='Greedy', color='#2ecc71')
@@ -182,7 +158,6 @@ def criar_graficos(dados):
     ax1.legend()
     ax1.grid(True, alpha=0.3)
     
-    # Subplot 2: Speedup
     ax2.bar(range(len(dados['n_itens'])), dados['speedup'], 
            color='#9b59b6', edgecolor='black', linewidth=1.5)
     ax2.set_xlabel('Número de Itens', fontweight='bold')
@@ -192,7 +167,6 @@ def criar_graficos(dados):
     ax2.set_xticklabels(dados['n_itens'])
     ax2.grid(True, axis='y', alpha=0.3)
     
-    # Subplot 3: Fator de Aproximação
     ax3.plot(dados['n_itens'], dados['fator_aproximacao'], 
             marker='D', linewidth=3, markersize=10,
             color='#3498db', markerfacecolor='#f39c12')
@@ -203,7 +177,6 @@ def criar_graficos(dados):
     ax3.set_ylim([0.95, 1.02])
     ax3.grid(True, alpha=0.3)
     
-    # Subplot 4: Gap de Otimalidade
     ax4.bar(range(len(dados['n_itens'])), dados['gap_percentual'], 
            color='#27ae60', edgecolor='black', linewidth=1.5)
     ax4.set_xlabel('Número de Itens', fontweight='bold')
